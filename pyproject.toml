@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "streeteasy-grep"
+version = "0.1.0"
+description = "Parse streeteasy.com for existing listing."
+authors = ["arberx <14798762+arberx@users.noreply.github.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+selenium = "^3.141.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[tool.poetry.scripts]
+streeteasy-grep = "streeteasy_grep.parser:main"
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
