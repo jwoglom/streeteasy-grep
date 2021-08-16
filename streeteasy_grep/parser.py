@@ -119,56 +119,55 @@ def main(args=None):
     # https://github.com/mozilla/geckodriver/releases
     opts = webdriver.FirefoxOptions()
     opts.headless = True
-    driver = webdriver.Firefox(options=opts)
-    args = parse_args(args)
-    url = construct_url(args)
+    with webdriver.Firefox(options=opts) as driver:
+        args = parse_args(args)
+        url = construct_url(args)
 
-    try:
-        # Iterate through all pages of results, and exception will be thrown to end iteration.
-        page = 1
-        results_dictionary = {}
-        while page == args.num_pages:
-            print(f"Parsing url: [{url}?page={page}]")
-            delay = 3
-            time.sleep(0.5)
-            driver.get(f"{url}/?page={page}")
-            # Wait until the search results are fully loaded
-            search_results = WebDriverWait(driver, delay).until(
-                EC.presence_of_element_located((By.CLASS_NAME, "searchCardList"))
-            )
-
-            # Start parsing out the result content
-            # This is extremely fragile and required looking through the HTML for the class/div ids
-            result_list = search_results.find_elements_by_tag_name("li")
-            for result in result_list:
-                # Get the listing link
-                a_el = result.find_elements_by_class_name("listingCard-globalLink")
-                link = sanitize_link(a_el[0].get_attribute("href"))
-                # Get the unit address
-                address_el = result.find_elements_by_class_name(
-                    "listingCard-addressLabel"
+        try:
+            # Iterate through all pages of results, and exception will be thrown to end iteration.
+            page = 1
+            results_dictionary = {}
+            while page == args.num_pages:
+                print(f"Parsing url: [{url}?page={page}]")
+                delay = 3
+                time.sleep(0.5)
+                driver.get(f"{url}/?page={page}")
+                # Wait until the search results are fully loaded
+                search_results = WebDriverWait(driver, delay).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, "searchCardList"))
                 )
-                address = address_el[0].text
-                # Get price
-                price_el = result.find_elements_by_class_name("price")
-                price = price_el[0].text
 
-                results_dictionary[link] = {"Address": address, "Price": price}
-            page += 1
+                # Start parsing out the result content
+                # This is extremely fragile and required looking through the HTML for the class/div ids
+                result_list = search_results.find_elements_by_tag_name("li")
+                for result in result_list:
+                    # Get the listing link
+                    a_el = result.find_elements_by_class_name("listingCard-globalLink")
+                    link = sanitize_link(a_el[0].get_attribute("href"))
+                    # Get the unit address
+                    address_el = result.find_elements_by_class_name(
+                        "listingCard-addressLabel"
+                    )
+                    address = address_el[0].text
+                    # Get price
+                    price_el = result.find_elements_by_class_name("price")
+                    price = price_el[0].text
 
-    except (selenium.common.exceptions.WebDriverException, TimeoutException) as e:
-        print(f"Error, reached end of results due to: {str(e)}")
+                    results_dictionary[link] = {"Address": address, "Price": price}
+                page += 1
 
-    # Write to file using url hash as identifier
-    # Also store the query in the output dictionary
-    dynamic_url = url.split("for-rent/")
-    query_content = dynamic_url[1] + f"|{str(args.num_pages)}"
-    hashed_query = hashlib.sha1(query_content.encode()).hexdigest()
-    results_dictionary["query"] = query_content
-    write_to_json(results_dictionary, f"results-{hashed_query}.json", args.check_diff)
+        except (selenium.common.exceptions.WebDriverException, TimeoutException) as e:
+            print(f"Error, reached end of results due to: {str(e)}")
 
-    driver.close()
-    driver.quit()
+        # Write to file using url hash as identifier
+        # Also store the query in the output dictionary
+        dynamic_url = url.split("for-rent/")
+        query_content = dynamic_url[1] + f"|{str(args.num_pages)}"
+        hashed_query = hashlib.sha1(query_content.encode()).hexdigest()
+        results_dictionary["query"] = query_content
+        write_to_json(
+            results_dictionary, f"results-{hashed_query}.json", args.check_diff
+        )
 
 
 if __name__ == "__main__":
