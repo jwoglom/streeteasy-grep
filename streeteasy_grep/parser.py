@@ -13,7 +13,7 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, WebDriverException
 
 from streeteasy_grep import config as cfg
 
@@ -156,13 +156,12 @@ def main(args=None):
                     results_dictionary[link] = {"Address": address, "Price": price}
                 page += 1
 
-        except (selenium.common.exceptions.WebDriverException, TimeoutException) as e:
+        except (WebDriverException, TimeoutException) as e:
             print(f"Error, reached end of results due to: {str(e)}")
 
         # Write to file using url hash as identifier
         # Also store the query in the output dictionary
-        dynamic_url = url.split("for-rent/")
-        query_content = dynamic_url[1] + f"|{str(args.num_pages)}"
+        query_content = url.split("for-rent/")[1] + f"|{str(args.num_pages)}"
         hashed_query = hashlib.sha1(query_content.encode()).hexdigest()
         results_dictionary["query"] = query_content
         write_to_json(
