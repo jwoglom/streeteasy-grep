@@ -27,8 +27,9 @@ def construct_url(args=None):
     upper_bound = args.price_upper_bound
     location = args.location
     beds = args.num_bedrooms
+    type_ = args.type
 
-    url = f"{cfg.STREETEASY_SITE}/for-rent/{location}/price:{lower_bound}-{upper_bound}|beds:{beds}"
+    url = f"{cfg.STREETEASY_SITE}/for-{type_}/{location}/price:{lower_bound}-{upper_bound}|beds:{beds}"
 
     if not args.has_fee:
         url += f"|no_fee"
@@ -70,12 +71,15 @@ def write_to_json(object, file, check_diff=False):
 def parse_args(args):
     """ Parse and store args """
     parser = argparse.ArgumentParser(
-        description="Parse streeteasy rental results for a given query with given parameters.",
+        description="Parse streeteasy search results for a given query with given parameters",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
     parser.add_argument(
-        "--location", "-l", default="ues", type=str, help="Location to search for."
+        "--location", "-l", default="ues", type=str, help="Location to search for"
+    )
+    parser.add_argument(
+        "--type", "-t", default="rent", type=str, choices=['rent', 'sale'], help="Search type"
     )
     parser.add_argument(
         "--price-lower-bound",
@@ -96,7 +100,7 @@ def parse_args(args):
         "--has-fee",
         "-hf",
         action="store_true",
-        help="Include apartments that have a signing fee.",
+        help="Include apartments that have a signing fee",
     )
     parser.add_argument(
         "--check-diff",
@@ -109,7 +113,7 @@ def parse_args(args):
         "-np",
         default=1,
         type=int,
-        help="Number of pages to iterate through.",
+        help="Number of pages to iterate through",
     )
 
     return parser.parse_args(args)
